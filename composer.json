@@ -1,0 +1,24 @@
+{
+    "name": "pizepei/service",
+    "description": "service",
+    "keywords": ["service","sms","Swoole","Swoole","WebSocket","Socket"],
+    "homepage": "https://org.heil.top/",
+    "authors": [
+        {
+            "name": "pizepei",
+            "email": "pizepei@pizepei.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.0.0",
+        "pizepei/config-ng": "dev-master",
+        "pizepei/func": "dev-master"
+    },
+    "autoload": {
+        "psr-4": {
+            "pizepei\\terminalInfo\\": "src/"
+        }
+
+    }
+
+}
