@@ -16,7 +16,7 @@
     },
     "autoload": {
         "psr-4": {
-            "pizepei\\terminalInfo\\": "src/"
+            "pizepei\\service\\": "src/"
         }
 
     }
