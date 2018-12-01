@@ -1,2 +1,2 @@
-# service
-包括常用的各种服务（短信、websocket、JSON Web Token）
+# webSocket
+webSocket 服务类集合包括 服务端、客户端
