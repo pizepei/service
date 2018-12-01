@@ -6,7 +6,7 @@
  * Time: 15:28
  */
 
-namespace pizepei\service\webSocket;
+namespace pizepei\service\websocket;
 
 class WebSocketClient
 {
