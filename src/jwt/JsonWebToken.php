@@ -46,29 +46,35 @@ class JsonWebToken
      * JsonWebToken constructor.
      *
      * @param array $Payload
-     * @param null  $JWT_config
+     * @param null  $config
+     * @throws \Exception
      */
     function __construct($Payload=[],$config=null)
     {
-        if(!$config) {return false;}
 
+        if(!$config) {throw new \Exception('配置不能为空');}
         if(is_array($config)){
+            $this->Payload = array_merge(self::Payload,$Payload);
             $this->secret = $config['secret']??$this->secret;
             $this->token_name = $config['token_name']??$this->token_name;
-            $this->Header = isset($config['Header'])?array_merge($this->jwtHeader,$config['jwtHeader']):$this->Header;
+            $this->Header = isset($config['Header'])?array_merge($this->Header,$config['Header']):$this->Header;
         }else{
-            $this->init($config);
+            /**
+             * 准备数据
+             */
+            $this->init($config,$Payload);
         }
-        //exit;
-        $this->setJWT($Payload);
     }
     /**
-     * 设置JWT签名
-     * @param $Payload
-     * @param $Type
+     * @Author: pizepei
+     * @Created: 2018/12/2 22:20
+     * @return array
+     * @title  设置JWT签名
+     * @explain 一般是方法功能说明、逻辑说明、注意事项等。
      */
-    protected function setJWT($Payload)
+    public function setJWT()
     {
+        //$Payload
         /**
          * 合并数据
          */
@@ -76,27 +82,43 @@ class JsonWebToken
         /**
          * 合并数据
          */
-        $Payload['nbf'] = $Payload['nbf']??time();
-        $Payload['iat'] = $Payload['iat']??time();
-        $Payload['jti'] = $Payload['jti']??time().mt_rand(100000,999999);
-        $PayloadData = array_merge(self::Payload,$Payload);
+        $this->Payload['nbf'] = $this->Payload['nbf']??time();
+        $this->Payload['iat'] = $this->Payload['iat']??time();
+        $this->Payload['jti'] = $this->Payload['jti']??time().mt_rand(100000,999999);
 
-        $Payload = base64_encode(json_encode($PayloadData));
-        $str = $Header.'.'.$Payload;
+        $this->Payload = base64_encode(json_encode($this->Payload));
+        $str = $Header.'.'.$this->Payload;
         if($this->Header['alg'] == 'md5'){
             $str .= '.'.md5($str.'.'.$this->secret);
         }
         $this->JWTstr = $str;
         $this->JWT_param  = '/?'.$this->token_name.'='.$str;
-        //var_dump($this->JWT_param );
-        //var_dump($this->JWTstr);
+        return ['str'=>$this->JWTstr,'param'=>$this->JWT_param ];
+
+    }
+
+    /**
+     * @Author: pizepei
+     * @Created: 2018/12/2 22:19
+     *
+     *
+     * @title  方法标题（一般是方法的简称）
+     * @explain 一般是方法功能说明、逻辑说明、注意事项等。
+     * @authTiny 微权限提供权限分配 [获取店铺所有  获取所有店铺  获取一个]
+     * @authGroup 权限分组对应文件头部 @authGroup
+     *
+     * @router 方法路由一般控制器只适应(get /user/:user_id[int] ))
+     */
+    public function decodeJWT()
+    {
+
     }
 
     /**
      * 获取配置
      * @param $name
      */
-    protected  function init($name)
+    protected  function init($name,$Payload)
     {
         $secretData = JsonWebTokenConfig::secret[$name];
         /**
@@ -104,11 +126,17 @@ class JsonWebToken
          */
         $this->Header = JsonWebTokenConfig::Header;
         $this->Header['alg'] = $secretData['alg'];
+
         /**
          * Payload
+         * 合并数据
          */
+        $Payload['nbf'] = $Payload['nbf']??time();
+        $Payload['iat'] = $Payload['iat']??time();
+        $Payload['jti'] = $Payload['jti']??time().mt_rand(100000,999999);
+        //$PayloadData = array_merge(self::Payload,$Payload);
+        $this->Payload = array_merge(self::Payload,JsonWebTokenConfig::Payload[$secretData['Payload']],$Payload);
 
-        $this->Payload = JsonWebTokenConfig::Payload[$secretData['Payload']];
         /**
          * secret
          */
