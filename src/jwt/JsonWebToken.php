@@ -89,7 +89,6 @@ class JsonWebToken
         $this->JWTstr = $str;
         $this->JWT_param  = '/?'.$this->token_name.'='.$str;
         //var_dump($this->JWT_param );
-        //
         //var_dump($this->JWTstr);
     }
 
