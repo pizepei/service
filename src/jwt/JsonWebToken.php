@@ -57,11 +57,10 @@ class JsonWebToken
             $this->token_name = $config['token_name']??$this->token_name;
             $this->Header = isset($config['Header'])?array_merge($this->jwtHeader,$config['jwtHeader']):$this->Header;
         }else{
-            $this->init($JWT_config);
-
+            $this->init($config);
         }
-        exit;
-        //$this->setJWT($Payload);
+        //exit;
+        $this->setJWT($Payload);
     }
     /**
      * 设置JWT签名
@@ -73,24 +72,25 @@ class JsonWebToken
         /**
          * 合并数据
          */
-        $jwtHeader = base64_encode(json_encode($this->jwtHeader));
+        $Header = base64_encode(json_encode($this->Header));
         /**
          * 合并数据
          */
         $Payload['nbf'] = $Payload['nbf']??time();
         $Payload['iat'] = $Payload['iat']??time();
         $Payload['jti'] = $Payload['jti']??time().mt_rand(100000,999999);
-        $PayloadData = array_merge(self::jwtPayload,$Payload);
+        $PayloadData = array_merge(self::Payload,$Payload);
 
-        $jwtPayload = base64_encode(json_encode($PayloadData));
-        $str = $jwtHeader.'.'.$jwtPayload;
-        if($this->jwtHeader['alg'] == 'md5'){
-            $secretToken  = $PayloadData['aud'] == 'socketServer'?$this->JWT_secret_base:$this->JWT_secret;
-            $str .= '.'.md5($str.'.'.$secretToken);
+        $Payload = base64_encode(json_encode($PayloadData));
+        $str = $Header.'.'.$Payload;
+        if($this->Header['alg'] == 'md5'){
+            $str .= '.'.md5($str.'.'.$this->secret);
         }
         $this->JWTstr = $str;
-        $this->JWT_param  = '/?'.$this->Access_token_name.'='.$str;
-
+        $this->JWT_param  = '/?'.$this->token_name.'='.$str;
+        //var_dump($this->JWT_param );
+        //
+        //var_dump($this->JWTstr);
     }
 
     /**
@@ -106,10 +106,17 @@ class JsonWebToken
         $this->Header = JsonWebTokenConfig::Header;
         $this->Header['alg'] = $secretData['alg'];
         /**
+         * Payload
+         */
+
+        $this->Payload = JsonWebTokenConfig::Payload[$secretData['Payload']];
+        /**
          * secret
          */
-        $this->secret = JsonWebTokenConfig::Payload[$secretData['Payload']];
-
+        $this->secret = $secretData['value'];
+        //var_dump($this->Payload);
+        //var_dump($this->Header);
+        //var_dump($this->secret);
     }
 
 
