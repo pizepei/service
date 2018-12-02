@@ -100,14 +100,8 @@ class JsonWebToken
     /**
      * @Author: pizepei
      * @Created: 2018/12/2 22:19
+     * @title  解密jwt
      *
-     *
-     * @title  方法标题（一般是方法的简称）
-     * @explain 一般是方法功能说明、逻辑说明、注意事项等。
-     * @authTiny 微权限提供权限分配 [获取店铺所有  获取所有店铺  获取一个]
-     * @authGroup 权限分组对应文件头部 @authGroup
-     *
-     * @router 方法路由一般控制器只适应(get /user/:user_id[int] ))
      */
     public function decodeJWT()
     {
@@ -134,16 +128,13 @@ class JsonWebToken
         $Payload['nbf'] = $Payload['nbf']??time();
         $Payload['iat'] = $Payload['iat']??time();
         $Payload['jti'] = $Payload['jti']??time().mt_rand(100000,999999);
-        //$PayloadData = array_merge(self::Payload,$Payload);
         $this->Payload = array_merge(self::Payload,JsonWebTokenConfig::Payload[$secretData['Payload']],$Payload);
 
         /**
          * secret
          */
         $this->secret = $secretData['value'];
-        //var_dump($this->Payload);
-        //var_dump($this->Header);
-        //var_dump($this->secret);
+
     }
 
 
