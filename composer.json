@@ -12,7 +12,8 @@
     "require": {
         "php": ">=7.0.0",
         "pizepei/config-ng": "dev-master",
-        "pizepei/func": "dev-master"
+        "pizepei/func": "dev-master",
+        "alibabacloud/sdk": "^1.0"
     },
     "autoload": {
         "psr-4": {
