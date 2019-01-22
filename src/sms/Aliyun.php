@@ -10,6 +10,9 @@
 namespace pizepei\service\sms;
 
 use pizepei\service\sms\SmsInterface;
+use AlibabaCloud\Client\AlibabaCloud;
+use AlibabaCloud\Client\Exception\ClientException;
+use AlibabaCloud\Client\Exception\ServerException;
 
 class Aliyun implements SmsInterface
 {
@@ -20,7 +23,7 @@ class Aliyun implements SmsInterface
      */
     public function __construct($config)
     {
-
+        $this->config = $config;
     }
 
     /**
@@ -37,6 +40,54 @@ class Aliyun implements SmsInterface
     public  function SendSms($PhoneNumbers,$data)
     {
 
+
     }
+
+
+    /**
+     * @title        发送方法
+     * @param        $PhoneNumbers 手机
+     * @param        $SignName 签名
+     * @param        $TemplateCode 模板
+     * @param        $TemplateParam 参数
+     * @param string $RegionId 地区
+     */
+    public function Send($PhoneNumbers,$SignName,$TemplateCode,$TemplateParam,$RegionId='cn-hangzhou')
+    {
+        // 设置一个全局客户端
+        AlibabaCloud::accessKeyClient($this->config['accessKeyId'], $this->config['accessKeySecret'])
+            ->regionId($RegionId)// 请替换为自己的 Region ID
+            ->asGlobalClient();
+        try {
+            $result = AlibabaCloud::rpcRequest()
+                ->product('Dysmsapi')
+                ->version('2017-05-25')
+                ->action('SendSms')
+                ->method('POST')
+                ->options([
+                    'query' => [
+                        'RegionId' => $RegionId,
+                        'PhoneNumbers' => $PhoneNumbers,
+                        'SignName' => $SignName,//签名
+                        'TemplateCode' => $TemplateCode,//模板id
+                        'TemplateParam' => $TemplateParam,//模板参数
+                    ],
+                ])
+                ->request();
+            return $result->toArray();
+        } catch (ClientException $e) {
+            echo $e->getErrorMessage() . PHP_EOL;
+
+        } catch (ServerException $e) {
+            echo $e->getErrorMessage() . PHP_EOL;
+
+        }
+
+
+    }
+
+
+
+
 
 }
