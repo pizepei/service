@@ -25,11 +25,11 @@ class Aliyun implements SmsInterface
     {
         $this->config = $config;
     }
-
     /**
      * @Author: pizepei
      * @Created: 2019/1/21 22:35
      *
+     * @param $pattern 模式
      * @param $PhoneNumbers 手机号码
      * @param $data  内容
      * @return mixed
@@ -37,12 +37,16 @@ class Aliyun implements SmsInterface
      * @title  发送验证方法
      * @explain 一般是方法功能说明、逻辑说明、注意事项等。
      */
-    public  function SendSms($PhoneNumbers,$data)
+    public  function SendSms($pattern,$PhoneNumbers,$data)
     {
-
+        return $this->Send(
+            $PhoneNumbers,
+            $this->config['pattern'][$pattern]['SignName'],
+            $this->config['pattern'][$pattern]['TemplateCode'],
+            $data
+        );
 
     }
-
     /**
      * @title        发送方法
      * @param        $PhoneNumbers 手机
@@ -51,11 +55,11 @@ class Aliyun implements SmsInterface
      * @param        $TemplateParam 参数
      * @param string $RegionId 地区
      */
-    public function Send($PhoneNumbers,$SignName,$TemplateCode,$TemplateParam,$RegionId='cn-hangzhou')
+    protected function Send($PhoneNumbers,$SignName,$TemplateCode,$TemplateParam,$RegionId='cn-hangzhou')
     {
         // 设置一个全局客户端
         AlibabaCloud::accessKeyClient($this->config['accessKeyId'], $this->config['accessKeySecret'])
-            ->regionId($RegionId)// 请替换为自己的 Region ID
+            ->regionId($this->config['RegionId'])// 请替换为自己的 Region ID
             ->asGlobalClient();
         try {
             $result = AlibabaCloud::rpcRequest()
@@ -69,17 +73,19 @@ class Aliyun implements SmsInterface
                         'PhoneNumbers' => $PhoneNumbers,
                         'SignName' => $SignName,//签名
                         'TemplateCode' => $TemplateCode,//模板id
-                        'TemplateParam' => $TemplateParam,//模板参数
+                        'TemplateParam' => json_encode($TemplateParam),//模板参数
                     ],
                 ])
                 ->request();
-            return $result->toArray();
+            $return = $result->toArray();
+            if(isset($return['Message']) &&isset($return['Code']) && $return['Message'] =='OK' && $return['Code'] =='OK' ){
+                return ['Message'=>$return,'Code'=>'OK'];
+            }
+            return ['Message'=>$return,'Code'=>'NO'];
         } catch (ClientException $e) {
-            echo $e->getErrorMessage() . PHP_EOL;
-
+            return ['Message'=>$e->getErrorMessage(),'Code'=>'NO'];
         } catch (ServerException $e) {
-            echo $e->getErrorMessage() . PHP_EOL;
-
+            return ['Message'=>$e->getErrorMessage(),'Code'=>'NO'];
         }
 
 

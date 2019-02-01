@@ -20,7 +20,7 @@ interface  SmsInterface
     /**
      * @Author: pizepei
      * @Created: 2019/1/21 22:35
-     *
+     * @param $pattern 模式
      * @param $PhoneNumbers 手机号码
      * @param $data  内容
      * @return mixed
@@ -28,6 +28,6 @@ interface  SmsInterface
      * @title  发送验证方法
      * @explain 一般是方法功能说明、逻辑说明、注意事项等。
      */
-    public  function SendSms($PhoneNumbers,$data);
+    public  function SendSms($pattern,$PhoneNumbers,$data);
 
 }

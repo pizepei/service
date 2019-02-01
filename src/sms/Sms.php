@@ -9,6 +9,7 @@
 namespace pizepei\service\sms;
 
 
+use pizepei\config\Service;
 use pizepei\func\Func;
 
 class Sms
@@ -18,7 +19,10 @@ class Sms
      * @var null 通道对象
      */
     protected $aisle = null;
-
+    /**
+     * @var null 通道对象
+     */
+    protected $aisleName = null;
     /**
      * @var null 配置
      */
@@ -35,23 +39,22 @@ class Sms
     public function __construct($config=null)
     {
         if($config){
-            /**
-             * 合并
-             */
-            $this->config = $config;
-
+            if(is_array($config)){
+                $this->config = $config;
+            }else{
+                $this->config = Service::SMS[$config];
+            }
         }else{
             /**
              * 使用配置
              */
-            $this->config = $config;
-
+            $this->config = Service::SMS[Service::SMS['default']];
         }
         /**
          * 获取配置
          * 通过配置确定需要实例化的通道对象
          */
-        $namespace = "pizepei\service\sms\\".$config['aisle'];
+        $namespace = "pizepei\service\sms\\".$this->config['aisleName'];
         $this->aisle = new $namespace($this->config);
     }
 
@@ -60,12 +63,13 @@ class Sms
      * @Created: 2019/1/21 23:03
      *
      * @param $PhoneNumbers
+     * @param $pattern 模式
      * @throws \Exception
      *
      * @title  发送验证码
      * @explain 一般是方法功能说明、逻辑说明、注意事项等。
      */
-    public  function SendCode($PhoneNumbers)
+    public  function SendCode($pattern,$PhoneNumbers)
     {
         if(empty($PhoneNumbers)){
             throw new \Exception('非法的号码');
@@ -74,16 +78,15 @@ class Sms
          * 使用函数获取随机数字
          */
         $code = Func::M('str')::int_rand(6);
-        var_dump($code);
-        $data['code'] = $code;
+        $parameterData['code'] = $code;
         /**
          * 发送
          */
-        $this->aisle->SendSms($PhoneNumbers,$data,$this->config);
+        $data = $this->aisle->SendSms($pattern,$PhoneNumbers,$parameterData);
+        $data['code'] = $code;
 
         return $data;
     }
-
     /**
      * 验证类型
      */
