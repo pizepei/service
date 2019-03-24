@@ -57,12 +57,15 @@ class PasswordHash
         if (password_verify($password, $hash)) {
             // 检测是否有更新的可用散列算法
             // 或者 cost 发生变化
-            if (password_needs_rehash($hash, PASSWORD_DEFAULT, $options)) {
-                // 如果是这样，则创建新散列，替换旧散列
-                return $newHash = password_hash($password, PASSWORD_DEFAULT, $options);
+            if(empty($options)){
+                if (password_needs_rehash($hash, PASSWORD_DEFAULT, $options)) {
+                    var_dump($options);
+                    // 如果是这样，则创建新散列，替换旧散列
+                    return $newHash = password_hash($password, PASSWORD_DEFAULT, $options);
+                }
             }
-            // 使用户登录
             return ['result'=>true,'newHash'=>$newHash??false];
+            // 使用户登录
         }
         return ['result'=>false];
 
