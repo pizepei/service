@@ -59,7 +59,7 @@ class PasswordHash
             // 或者 cost 发生变化
             if(empty($options)){
                 if (password_needs_rehash($hash, PASSWORD_DEFAULT, $options)) {
-                    var_dump($options);
+
                     // 如果是这样，则创建新散列，替换旧散列
                     return $newHash = password_hash($password, PASSWORD_DEFAULT, $options);
                 }
