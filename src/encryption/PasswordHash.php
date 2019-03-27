@@ -72,6 +72,15 @@ class PasswordHash
 
     }
 
+    /**
+     * 过滤密码
+     */
+    public function password_regular(string $password,string$pattern)
+    {
+        preg_match();
+    }
+    //public function
+
 
 
 }
