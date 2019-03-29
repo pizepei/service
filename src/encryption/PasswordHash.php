@@ -69,18 +69,18 @@ class PasswordHash
         }
         return ['result'=>false];
 
-
     }
-
     /**
      * 过滤密码
+     * @param string $pattern
+     * @param string $password
+     * @return mixed
      */
-    public function password_regular(string $password,string$pattern)
+    public function password_match(string$pattern,string $password)
     {
-        preg_match();
+        preg_match($pattern,$password,$matches);
+        return$matches;
     }
-    //public function
-
 
 
 }
