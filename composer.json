@@ -13,7 +13,8 @@
         "php": ">=7.0.0",
         "pizepei/config-ng": "dev-master",
         "pizepei/func": "dev-master",
-        "alibabacloud/sdk": "^1.0"
+        "alibabacloud/sdk": "^1.0",
+        "qiniu/php-sdk":"dev-master",
     },
     "autoload": {
         "psr-4": {
