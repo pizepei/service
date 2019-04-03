@@ -14,6 +14,7 @@
         "pizepei/config-ng": "dev-master",
         "pizepei/func": "dev-master",
         "alibabacloud/sdk": "^1.0",
+        "pizepei/encryption":"dev-master",
         "qiniu/php-sdk":"dev-master"
     },
     "autoload": {
