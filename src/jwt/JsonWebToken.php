@@ -8,6 +8,8 @@
  */
 namespace pizepei\service\jwt;
 use pizepei\config\JsonWebTokenConfig;
+use pizepei\encryption\aes\Prpcrypt;
+use pizepei\func\Func;
 
 class JsonWebToken
 {
@@ -40,31 +42,48 @@ class JsonWebToken
      * @var string
      */
     protected $token_name = 'token';
-
+    /**
+     * @var array
+     */
+    protected $Payload = [];
 
     /**
      * JsonWebToken constructor.
      *
      * @param array $Payload
-     * @param null  $config
+     * @param array  $config
      * @throws \Exception
      */
-    function __construct($Payload=[],$config=null)
+    function __construct()
     {
-
-        if(!$config) {throw new \Exception('配置不能为空');}
-        if(is_array($config)){
-            $this->Payload = array_merge(self::Payload,$Payload);
-            $this->secret = $config['secret']??$this->secret;
-            $this->token_name = $config['token_name']??$this->token_name;
-            $this->Header = isset($config['Header'])?array_merge($this->Header,$config['Header']):$this->Header;
-        }else{
-            /**
-             * 准备数据
-             */
-            $this->init($config,$Payload);
-        }
     }
+
+    /**
+     * 获取配置
+     * @param $config
+     * @param $Payload
+     */
+    protected  function init($config,$Payload)
+    {
+        /**
+         * Header
+         */
+        $this->Header = $config['Header'];
+        /**
+         * Payload
+         * 合并数据
+         */
+        $Payload['nbf'] = $Payload['nbf']??time();//生效时间
+        $Payload['iat'] = $Payload['iat']??time();//签发时间
+        $Payload['jti'] = $Payload['jti']??Func::M('str')::int_rand(32);//随机数
+        $this->Payload = array_merge(self::Payload,$config['Payload'],$Payload);//合并数据
+        /**
+         * secret
+         */
+        $this->secret = $config['secret'];
+        $this->token_name = $config['token_name']??$this->token_name;
+    }
+
     /**
      * @Author: pizepei
      * @Created: 2018/12/2 22:20
@@ -72,69 +91,104 @@ class JsonWebToken
      * @title  设置JWT签名
      * @explain 一般是方法功能说明、逻辑说明、注意事项等。
      */
-    public function setJWT()
+    public function setJWT(array $Payload,array $config)
     {
-        //$Payload
-        /**
-         * 合并数据
-         */
+        $this->init($config,$Payload);
         $Header = base64_encode(json_encode($this->Header));
         /**
-         * 合并数据
+         * 判断加密方法
          */
-        $this->Payload['nbf'] = $this->Payload['nbf']??time();
-        $this->Payload['iat'] = $this->Payload['iat']??time();
-        $this->Payload['jti'] = $this->Payload['jti']??time().mt_rand(100000,999999);
-
-        $this->Payload = base64_encode(json_encode($this->Payload));
-        $str = $Header.'.'.$this->Payload;
-        if($this->Header['alg'] == 'md5'){
+        if($this->Header['alg'] == 'base64_encode'){
+            $this->Payload = base64_encode(json_encode($this->Payload));
             $str .= '.'.md5($str.'.'.$this->secret);
+        }else if($this->Header['alg'] == 'aes'){
+            if(empty($config['secret_key'])){
+                throw new \Exception('secret_key是必须的');
+            }
+            if(empty($this->Header['appid'])){
+                throw new \Exception('appid是必须的');
+            }
+            $Prpcrypt = new Prpcrypt($config['secret_key']);
+            $this->Payload = $Prpcrypt->encrypt(json_encode($this->Payload,JSON_FORCE_OBJECT ),$this->Header['appid'] );
+            if(!$this->Payload){
+                throw new \Exception('Payload加密错误');
+            }
+        }
+        $str = $Header.'.'.$this->Payload;
+        /**
+         * 判断签名方法
+         */
+        if($this->Header['sig'] == 'md5'){
+            $str .= '.'.md5($str.'.'.$this->secret);
+        }elseif($this->Header['sig'] == 'sha1')
+        {
+            $str .= '.'.sha1($str.'.'.$this->secret);
         }
         $this->JWTstr = $str;
         $this->JWT_param  = '/?'.$this->token_name.'='.$str;
         return ['str'=>$this->JWTstr,'param'=>$this->JWT_param ];
 
     }
-
     /**
      * @Author: pizepei
      * @Created: 2018/12/2 22:19
      * @title  解密jwt
      *
      */
-    public function decodeJWT()
+    public function decodeJWT(string $jwtString,array $config)
     {
-
-    }
-
-    /**
-     * 获取配置
-     * @param $name
-     */
-    protected  function init($name,$Payload)
-    {
-        $secretData = JsonWebTokenConfig::secret[$name];
         /**
-         * Header
+         * 切割主体
          */
-        $this->Header = JsonWebTokenConfig::Header;
-        $this->Header['alg'] = $secretData['alg'];
-
+        $explode = explode('.',$jwtString);
+        if(count($explode)  !== 3){throw new \Exception('Payload加密错误');}
         /**
-         * Payload
-         * 合并数据
+         * 验证签名
          */
-        $Payload['nbf'] = $Payload['nbf']??time();
-        $Payload['iat'] = $Payload['iat']??time();
-        $Payload['jti'] = $Payload['jti']??time().mt_rand(100000,999999);
-        $this->Payload = array_merge(self::Payload,JsonWebTokenConfig::Payload[$secretData['Payload']],$Payload);
-
+        $Header = json_decode(base64_decode($explode[0]),true);
+        if((!isset($Header['sig'])) || (!isset($Header['sig']))){throw new \Exception('非法数据[Header]');}
+        $str = $explode[0].'.'.$explode[1];
         /**
-         * secret
+         * 判断签名方法
          */
-        $this->secret = $secretData['value'];
+        if($Header['sig'] == 'md5')
+        {
+            $signature = md5($str.'.'.$config['secret']);
+        }else if($Header['sig'] == 'sha1')
+        {
+            $signature = sha1($str.'.'.$config['secret']);
+        }
+        if($signature !== $explode[2] ){throw new \Exception('非法数据[signature]');}
+        /**
+         * 解密
+         */
+        if($Header['alg'] == 'base64_encode')
+        {
+            $Payload = json_decode(base64_decode($explode[1]),true);
 
+        }else if($Header['alg'] == 'aes')
+        {
+            $Prpcrypt = new Prpcrypt($config['secret_key']);
+            $Payload = $Prpcrypt->decrypt($explode[1]);
+            if(!isset($Payload[2])){throw new \Exception('非法数据');}
+            /**
+             * 判断appid是否正确
+             */
+            if($Payload[2]  !== $Header['appid']){throw new \Exception('非法数据');}
+            $Payload = json_decode($Payload[1],true);
+            if(empty($Payload)){throw new \Exception('非法数据');}
+        }
+        /**
+         * 判断是否过期
+         */
+        if(!isset($Payload['nbf'])  ||  !isset($Payload['iat'])  || !isset($Payload['exp'])){throw new \Exception('非法数据');}
+        $Payload['nbf'] = $Payload['nbf']??time();//生效时间
+        $Payload['iat'] = $Payload['iat']??time();//签发时间
+        if(time() < $Payload['nbf']){throw new \Exception('签名未生效');}
+        
+        if(time() > ($Payload['exp']+$Payload['nbf']) ){throw new \Exception('签名失效');}
+
+        return $Payload;
     }
 
 
