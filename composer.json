@@ -15,7 +15,8 @@
         "pizepei/func": "dev-master",
         "alibabacloud/sdk": "^1.0",
         "pizepei/encryption":"dev-master",
-        "qiniu/php-sdk":"dev-master"
+        "qiniu/php-sdk":"dev-master",
+        "overtrue/chinese-calendar": "dev-master"
     },
     "autoload": {
         "psr-4": {
