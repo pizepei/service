@@ -8,7 +8,7 @@
 namespace pizepei\service\time;
 
 
-use Overtrue\ChineseCalendar\Calendarsolar;
+use Overtrue\ChineseCalendar\Calendar;
 
 class Time
 {
@@ -26,8 +26,8 @@ class Time
      */
     public static function lunar($year, $month, $day, $isLeapMonth = false, $hour = null)
     {
-        $Calendar = new Calendarsolar();
-        return $calendar->lunar($year, $month, $day, $isLeapMonth = false, $hour = null); // 阴历
+        $Calendar = new Calendar();
+        return $Calendar->lunar($year, $month, $day, $isLeapMonth = false, $hour = null); // 阴历
     }
 
     /**
@@ -41,9 +41,8 @@ class Time
      */
     public static function solar($year, $month, $day, $hour = null)
     {
-        $Calendar = new Calendarsolar();
-
-        return $calendar->solar($year, $month, $day, $hour = null); // 阴历
+        $Calendar = new Calendar();
+        return $Calendar->solar($year, $month, $day, $hour = null); // 阴历
     }
 
 }
