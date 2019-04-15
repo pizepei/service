@@ -10,6 +10,7 @@ namespace pizepei\service\jwt;
 use pizepei\config\JsonWebTokenConfig;
 use pizepei\encryption\aes\Prpcrypt;
 use pizepei\func\Func;
+use pizepei\model\redis\Redis;
 
 class JsonWebToken
 {
@@ -91,16 +92,18 @@ class JsonWebToken
      * @title  设置JWT签名
      * @explain 一般是方法功能说明、逻辑说明、注意事项等。
      */
-    public function setJWT(array $Payload,array $config)
+    public function setJWT(array $Payload,array $config,$TokenSalt,$TokenSaltName='number')
     {
         $this->init($config,$Payload);
+        $this->Header[$TokenSaltName] = $Payload[$TokenSaltName];
         $Header = base64_encode(json_encode($this->Header));
         /**
          * 判断加密方法
          */
+        $exp = $this->Payload['exp'];
         if($this->Header['alg'] == 'base64_encode'){
             $this->Payload = base64_encode(json_encode($this->Payload));
-            $str .= '.'.md5($str.'.'.$this->secret);
+
         }else if($this->Header['alg'] == 'aes'){
             if(empty($config['secret_key'])){
                 throw new \Exception('secret_key是必须的');
@@ -119,23 +122,28 @@ class JsonWebToken
          * 判断签名方法
          */
         if($this->Header['sig'] == 'md5'){
-            $str .= '.'.md5($str.'.'.$this->secret);
+            $signature = md5($str.'.'.$this->secret.$TokenSalt);
+            $str .= '.'.$signature;
         }elseif($this->Header['sig'] == 'sha1')
         {
-            $str .= '.'.sha1($str.'.'.$this->secret);
+            $signature = sha1($str.'.'.$this->secret.$TokenSalt);
+            $str .= '.'.$signature;
         }
         $this->JWTstr = $str;
         $this->JWT_param  = '/?'.$this->token_name.'='.$str;
-        return ['str'=>$this->JWTstr,'param'=>$this->JWT_param ];
+        return ['str'=>$this->JWTstr,'param'=>$this->JWT_param,'signature'=>$signature,'exp'=>$exp];
 
     }
+
     /**
-     * @Author: pizepei
-     * @Created: 2018/12/2 22:19
-     * @title  解密jwt
-     *
+     * 解密jwt
+     * @param string $jwtString
+     * @param array  $config
+     * @param string $TokenSalt
+     * @return array|mixed|null
+     * @throws \Exception
      */
-    public function decodeJWT(string $jwtString,array $config)
+    public function decodeJWT(string $jwtString,array $config,\Redis $Redis=null,$TokenSaltName='number')
     {
         /**
          * 切割主体
@@ -149,14 +157,21 @@ class JsonWebToken
         if((!isset($Header['sig'])) || (!isset($Header['sig']))){throw new \Exception('非法数据[Header]');}
         $str = $explode[0].'.'.$explode[1];
         /**
+         * 判断是否有用户自己的TokenSalt
+         */
+        $TokenSalt = '';
+        if($Redis){
+            $TokenSalt = $Redis->get('user-logon-jwt-tokenSalt:'.$Header['number']);
+        }
+        /**
          * 判断签名方法
          */
         if($Header['sig'] == 'md5')
         {
-            $signature = md5($str.'.'.$config['secret']);
+            $signature = md5($str.'.'.$config['secret'].$TokenSalt);
         }else if($Header['sig'] == 'sha1')
         {
-            $signature = sha1($str.'.'.$config['secret']);
+            $signature = sha1($str.'.'.$config['secret'].$TokenSalt);
         }
         if($signature !== $explode[2] ){throw new \Exception('非法数据[signature]');}
         /**
@@ -190,22 +205,5 @@ class JsonWebToken
 
         return $Payload;
     }
-
-
-    /**
-     * 包括 加 解密
-     *
-     */
-
-
-    /**
-     * 可选择
-     *  加密方式
-     *  缓存类型  redis 或者mysql
-     *  不同权限的签名
-     */
-
-
-
 
 }
