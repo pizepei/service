@@ -116,6 +116,7 @@ class JsonWebToken
             if(!$this->Payload){
                 throw new \Exception('Payload加密错误');
             }
+            $this->Payload = base64_encode($this->Payload);
         }
         $str = $Header.'.'.$this->Payload;
         /**
@@ -173,7 +174,7 @@ class JsonWebToken
         {
             $signature = sha1($str.'.'.$config['secret'].$TokenSalt);
         }
-        if($signature !== $explode[2] ){throw new \Exception('非法数据[signature]');}
+        if($signature != $explode[2] ){throw new \Exception('非法数据[signature]');}
         /**
          * 解密
          */
@@ -184,14 +185,14 @@ class JsonWebToken
         }else if($Header['alg'] == 'aes')
         {
             $Prpcrypt = new Prpcrypt($config['secret_key']);
-            $Payload = $Prpcrypt->decrypt($explode[1]);
-            if(!isset($Payload[2])){throw new \Exception('非法数据');}
+            $Payload = $Prpcrypt->decrypt(base64_decode($explode[1]));
+            if(!isset($Payload[2])){throw new \Exception('非法数据1');}
             /**
              * 判断appid是否正确
              */
-            if($Payload[2]  !== $Header['appid']){throw new \Exception('非法数据');}
+            if($Payload[2]  !== $Header['appid']){throw new \Exception('非法数据2');}
             $Payload = json_decode($Payload[1],true);
-            if(empty($Payload)){throw new \Exception('非法数据');}
+            if(empty($Payload)){throw new \Exception('非法数据3');}
         }
         /**
          * 判断是否过期
