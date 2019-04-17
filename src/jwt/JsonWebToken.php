@@ -202,7 +202,7 @@ class JsonWebToken
         $Payload['iat'] = $Payload['iat']??time();//签发时间
         if(time() < $Payload['nbf']){throw new \Exception('签名未生效');}
         
-        if(time() > ($Payload['exp']+$Payload['nbf']) ){throw new \Exception('签名失效');}
+        if(time() > ($Payload['exp']+$Payload['nbf']) ){throw new \Exception('签名失效',50001);}
 
         return $Payload;
     }
