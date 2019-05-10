@@ -13,10 +13,7 @@
         "php": ">=7.0.0",
         "pizepei/config-ng": "dev-master",
         "pizepei/func": "dev-master",
-        "alibabacloud/sdk": "^1.0",
-        "pizepei/encryption":"dev-master",
-        "qiniu/php-sdk":"dev-master",
-        "overtrue/chinese-calendar": "dev-master"
+        "pizepei/encryption":"dev-master"
     },
     "autoload": {
         "psr-4": {
