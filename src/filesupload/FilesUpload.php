@@ -10,6 +10,7 @@ namespace pizepei\service\filesupload;
 use pizepei\encryption\aes\Prpcrypt;
 use pizepei\encryption\SHA1;
 use pizepei\func\Func;
+use pizepei\helper\Helper;
 
 class FilesUpload
 {
@@ -63,7 +64,8 @@ class FilesUpload
         }
 
         $timestamp = time();
-        $nonce =    Func::M('str')::str_rand(10);
+
+        $nonce =    Helper::str()->str_rand(10);
         $encrypt_msg = [
                         'appid'=>$this->config['appid'],
                         'filesName'=>$Request['filesName'],
@@ -221,7 +223,7 @@ class FilesUpload
         /**
          * 确定文件名
          */
-        $filesName =    Func::M('str')::str_rand(32).'.'.$expandedName;
+        $filesName =    Helper::str()->str_rand(32).'.'.$expandedName;
         move_uploaded_file($temporary,$targetDir.$filesName);
         /**
          * 写入文件

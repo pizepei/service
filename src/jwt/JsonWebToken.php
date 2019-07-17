@@ -10,6 +10,7 @@ namespace pizepei\service\jwt;
 use pizepei\config\JsonWebTokenConfig;
 use pizepei\encryption\aes\Prpcrypt;
 use pizepei\func\Func;
+use pizepei\helper\Helper;
 use pizepei\model\redis\Redis;
 
 class JsonWebToken
@@ -76,7 +77,7 @@ class JsonWebToken
          */
         $Payload['nbf'] = $Payload['nbf']??time();//生效时间
         $Payload['iat'] = $Payload['iat']??time();//签发时间
-        $Payload['jti'] = $Payload['jti']??Func::M('str')::int_rand(32);//随机数
+        $Payload['jti'] = $Payload['jti']??Helper::str()->int_rand(32);//随机数
         $this->Payload = array_merge(self::Payload,$config['Payload'],$Payload);//合并数据
         /**
          * secret
