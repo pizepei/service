@@ -11,6 +11,7 @@ namespace pizepei\service\sms;
 
 use pizepei\config\Service;
 use pizepei\func\Func;
+use pizepei\helper\Helper;
 
 class Sms
 {
@@ -77,7 +78,8 @@ class Sms
         /**
          * 使用函数获取随机数字
          */
-        $code = Func::M('str')::int_rand(6);
+
+        $code = Helper::str()->int_rand(6);
         $parameterData['code'] = $code;
         /**
          * 发送
