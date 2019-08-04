@@ -102,6 +102,8 @@ class WebSocketServer
         /**
          * 实例化WebSocketServer
          */
+//        $this->Server = new \Swoole\WebSocket\Server(self::host, self::port);
+
         $this->Server = new \swoole_websocket_server(self::host, self::port);
         $this->Server->set(self::config);
         /**
@@ -128,6 +130,8 @@ class WebSocketServer
         $this->Server->on('finish',[$this,'onFinish']);
 
         echo PHP_EOL.'实例化成功'.PHP_EOL;
+        echo PHP_EOL.'host:'.self::host.PHP_EOL;
+        echo PHP_EOL.'port:'.self::port.PHP_EOL;
         /**
          * 启动服务
          */
@@ -208,9 +212,8 @@ class WebSocketServer
                  */
                 $Payload = json_decode(base64_decode($JWT[1]),true);
                 $JWTmd5 = md5($JWT[0].'.'.$JWT[1].'.'.($Payload['aud']=='socketServer'?self::JWT_secret_base:self::JWT_secret));
-
+                var_dump($Payload);
                 if($JWTmd5 === $JWT[2]){
-
                     if(isset($Payload['data']['uid']) && !empty($Payload['data']['uid'])){
                         echo PHP_EOL.'************鉴权通过**************'.PHP_EOL;
                         /**
@@ -273,6 +276,7 @@ class WebSocketServer
                 );
             }
         }
+        echo $request->fd;
         /**
          * 返回数据
          */
@@ -387,6 +391,8 @@ class WebSocketServer
                     'content'=>$data['data']['content'],
                 ];
                 $Server->push($clientEvent['fd'],json_encode($push,self::json_encode_options));
+                $Server->push($frame->fd,json_encode($push,self::json_encode_options));
+
                 break;
             case 'clientSendFd'://fd发信息
                 /**

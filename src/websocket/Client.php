@@ -15,7 +15,7 @@ class Client
      * 绑定的服务地址（可以是域名）
      * @var string
      */
-    const host = '0.0.0.0';
+    const host = 'oauth.heil.top';
     /**
      * 服务端口号
      * @var int
@@ -126,7 +126,11 @@ class Client
         }
         return null;
     }
-
+    /**
+     * 链接时的需要Content
+     * @var string
+     */
+    public $connectContent = null;
     /**
      * 开始连接
      * @return null|\WebSocketClient
@@ -134,7 +138,9 @@ class Client
     public function connect()
     {
         $this->connect = new WebSocketClient(self::host, self::port,$this->JWT_param);
-        $this->connect->connect();
+//        var_dump($this->connect->connect());
+        $this->connectContent = $this->connect->connect();
+
         return $this->connect;
     }
     /**
@@ -233,10 +239,11 @@ class Client
 
         if($Receipt){
             $this->connect->send($this->dataSend);
-            $re = $this->connect->recv(4);
+            $re = $this->connect->recv(100);
             if($re){
                 $re = json_decode($re->data,true);
-                if(isset($re['success']) &&  $re['messageId'] == $messageId){ return $re->data['status'];}
+                if (!empty($re)){return $re;}
+                #if(isset($re['success']) &&  $re['messageId'] == $messageId){ return $re->data['status'];}
             }
             return false;
         }else{

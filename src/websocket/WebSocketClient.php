@@ -115,7 +115,7 @@ class WebSocketClient
     public function close($code = self::CLOSE_NORMAL, $reason = '')
     {
         $data = pack('n', $code) . $reason;
-        return $this->socket->send(swoole_websocket_server::pack($data, self::OPCODE_CONNECTION_CLOSE, true));
+        return $this->socket->send(\swoole_websocket_server::pack($data, self::OPCODE_CONNECTION_CLOSE, true));
     }
 
     /**
@@ -141,14 +141,18 @@ class WebSocketClient
              */
             usleep($time);
         }
+
         if ($data === false)
         {
             if($error){
+
                 echo "Error: {$this->socket->errMsg}";
             }
             return false;
         }
+
         $this->buffer .= $data;
+
         $recv_data = $this->parseData($this->buffer);
         if ($recv_data)
         {
@@ -183,7 +187,7 @@ class WebSocketClient
             default:
                 return false;
         }
-        return $this->socket->send(swoole_websocket_server::pack($data, $_type, true, $masked));
+        return $this->socket->send(\swoole_websocket_server::pack($data, $_type, true, $masked));
     }
 
     /**
@@ -196,12 +200,10 @@ class WebSocketClient
         if (!$this->connected)
         {
             $response = $this->parseIncomingRaw($response);
-            if (isset($response['Sec-Websocket-Accept'])
-                && base64_encode(pack('H*', sha1($this->key . '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'))) === $response['Sec-Websocket-Accept']
-            )
+            if (isset($response['Sec-Websocket-Accept']) && base64_encode(pack('H*', sha1($this->key . '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'))) === $response['Sec-Websocket-Accept'])
             {
                 $this->connected = true;
-                return true;
+                return $response['content'];
             }
             else
             {
@@ -209,7 +211,7 @@ class WebSocketClient
             }
         }
 
-        $frame = swoole_websocket_server::unpack($response);
+        $frame = \swoole_websocket_server::unpack($response);
         if ($frame)
         {
             return $this->returnData ? $frame->data : $frame;
