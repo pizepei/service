@@ -138,9 +138,7 @@ class Client
     public function connect()
     {
         $this->connect = new WebSocketClient(self::host, self::port,$this->JWT_param);
-//        var_dump($this->connect->connect());
         $this->connectContent = $this->connect->connect();
-
         return $this->connect;
     }
     /**
@@ -148,7 +146,7 @@ class Client
      * @param $Payload
      * @param $Type
      */
-    protected function setJWT($Payload)
+    public function setJWT($Payload)
     {
         /**
          * 合并数据

@@ -280,6 +280,7 @@ class WebSocketServer
         /**
          * 返回数据
          */
+        var_dump($serv->send);
         $Server->push($request->fd,$data);
     }
     /**
@@ -376,11 +377,7 @@ class WebSocketServer
                  */
                 if(!isset($data['data']['objectId']) || !isset($data['data']['type']) ||   !isset($data['data']['content'])  ){ return $Server->push($frame->fd,json_encode(['serverError'=>7614,'msg'=>'content/objectId/type 不能为空'],self::json_encode_options)); };
                 $clientEvent = $this->table->get($data['data']['objectId']);
-                var_dump($data);
-                var_dump($clientEvent);
-
                 if(!$clientEvent){ return $Server->push($frame->fd,json_encode(['serverError'=>7615,'msg'=>'objectId 不存在'],self::json_encode_options)); }
-
 
                 if(!$Server->exist($clientEvent['fd'])){  return $Server->push($frame->fd,json_encode(['serverError'=>7621,'msg'=>'objectId 不存在/不在线'],self::json_encode_options)); }
                 $push['data'] =[
@@ -389,9 +386,11 @@ class WebSocketServer
                     'info'=>$data['data']['info']??'',
                     'title'=>$data['data']['title']??'普通信息',
                     'content'=>$data['data']['content'],
+                    'data'=>$data,
                 ];
-                $Server->push($clientEvent['fd'],json_encode($push,self::json_encode_options));
-                $Server->push($frame->fd,json_encode($push,self::json_encode_options));
+                $push['status'] = $Server->push($clientEvent['fd'],json_encode($push,self::json_encode_options));# 发送数据
+                unset($push['data']);
+                $Server->push($frame->fd,json_encode($push,self::json_encode_options)); # 回复需要发送的数据（响应）
 
                 break;
             case 'clientSendFd'://fd发信息
