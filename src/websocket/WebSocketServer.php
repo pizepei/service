@@ -350,10 +350,23 @@ class WebSocketServer
                 /**
                  * 进行判断并且返回数据
                  */
+                $status = false;
+                if ($Server->exist($fd)){
+                    $status = true;
+                    $clientInfo = $Server->getClientInfo($clientEvent['fd']);
+                    # 过滤每个数据
+                    unset($clientInfo['websocket_status']);
+                    unset($clientInfo['server_port']);
+                    unset($clientInfo['socket_fd']);
+                    unset($clientInfo['socket_type']);
+                    unset($clientInfo['close_errno']);
+                    unset($clientInfo['server_fd']);
+                }
                 $push['data'] = [
-                    'status' => $Server->exist($fd),
+                    'status' => $status,
                     'type'   => $data['data']['type'],
                     'id'     => $data['data']['id'],
+                    'clientInfo'  =>$clientInfo,
                 ];
                 $Server->push($frame->fd,json_encode($push,self::json_encode_options));
                 echo PHP_EOL."clientExist".PHP_EOL;
@@ -374,6 +387,7 @@ class WebSocketServer
                 /**
                  * 获取对象数据
                  */
+                echo PHP_EOL.'向uid发送数据'.PHP_EOL;
                 if(!isset($data['data']['objectId']) || !isset($data['data']['type']) ||   !isset($data['data']['content'])  ){ return $Server->push($frame->fd,json_encode(['serverError'=>7614,'msg'=>'content/objectId/type 不能为空'],self::json_encode_options)); };
                 $clientEvent = $this->table->get($data['data']['objectId']);
                 if(!$clientEvent){ return $Server->push($frame->fd,json_encode(['serverError'=>7615,'msg'=>'objectId 不存在'],self::json_encode_options)); }
@@ -382,6 +396,8 @@ class WebSocketServer
                 $push['data'] =$data['data'];
                 $push['status'] = $Server->push($clientEvent['fd'],json_encode($push,self::json_encode_options));# 发送数据
                 unset($push['data']);
+                var_dump($Server->getClientInfo($clientEvent['fd']));
+
                 $Server->push($frame->fd,json_encode($push,self::json_encode_options)); # 回复需要发送的数据（响应）
 
                 break;

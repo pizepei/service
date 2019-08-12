@@ -192,7 +192,10 @@ class Client
         $exist = json_decode($exist->data,true);
 
         if(isset($exist['success'])){
-            return $exist['data']['status'];
+            if ($exist['data']['status']){
+                return $exist['data']['clientInfo'];
+            }
+            return false;
         }
         return false;
     }
