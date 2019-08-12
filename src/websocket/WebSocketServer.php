@@ -212,7 +212,6 @@ class WebSocketServer
                  */
                 $Payload = json_decode(base64_decode($JWT[1]),true);
                 $JWTmd5 = md5($JWT[0].'.'.$JWT[1].'.'.($Payload['aud']=='socketServer'?self::JWT_secret_base:self::JWT_secret));
-                var_dump($Payload);
                 if($JWTmd5 === $JWT[2]){
                     if(isset($Payload['data']['uid']) && !empty($Payload['data']['uid'])){
                         echo PHP_EOL.'************鉴权通过**************'.PHP_EOL;
@@ -380,14 +379,7 @@ class WebSocketServer
                 if(!$clientEvent){ return $Server->push($frame->fd,json_encode(['serverError'=>7615,'msg'=>'objectId 不存在'],self::json_encode_options)); }
 
                 if(!$Server->exist($clientEvent['fd'])){  return $Server->push($frame->fd,json_encode(['serverError'=>7621,'msg'=>'objectId 不存在/不在线'],self::json_encode_options)); }
-                $push['data'] =[
-                    'messageId'=>$data['data']['messageId'],
-                    'type'=>$data['data']['type'],
-                    'info'=>$data['data']['info']??'',
-                    'title'=>$data['data']['title']??'普通信息',
-                    'content'=>$data['data']['content'],
-                    'data'=>$data,
-                ];
+                $push['data'] =$data['data'];
                 $push['status'] = $Server->push($clientEvent['fd'],json_encode($push,self::json_encode_options));# 发送数据
                 unset($push['data']);
                 $Server->push($frame->fd,json_encode($push,self::json_encode_options)); # 回复需要发送的数据（响应）
@@ -401,13 +393,7 @@ class WebSocketServer
 
                 if(!$Server->exist($data['data']['objectId'])){  return $Server->push($frame->fd,json_encode(['serverError'=>7616,'msg'=>'objectId 不存在/不在线'],self::json_encode_options)); }
 
-                $push['data'] =[
-                    'messageId'=>$data['data']['messageId'],
-                    'type'=>$data['data']['type'],
-                    'info'=>$data['data']['info']??'',
-                    'title'=>$data['data']['title']??'普通信息',
-                    'content'=>$data['data']['content'],
-                ];
+                $push['data'] =$push['data'];
                 $Server->push($data['data']['objectId'],json_encode($push,self::json_encode_options));
                 break;
 
