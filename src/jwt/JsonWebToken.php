@@ -10,6 +10,7 @@ namespace pizepei\service\jwt;
 use pizepei\config\JsonWebTokenConfig;
 use pizepei\encryption\aes\Prpcrypt;
 use pizepei\func\Func;
+use pizepei\helper\ArrayList;
 use pizepei\helper\Helper;
 use pizepei\model\redis\Redis;
 
@@ -209,4 +210,20 @@ class JsonWebToken
         return $Payload;
     }
 
+    /**
+     * @Author 皮泽培
+     * @Created 2019/10/17 13:55
+     * @param array $userInfo
+     * @param string $token
+     * @return array
+     * @title  缓存用户信息
+     * @explain 缓存用户信息
+     * @throws \Exception
+     */
+    public function cacheUserInfo(array $userInfo,string $token,int $period)
+    {
+        # 基础用户信息
+            # 用户名、头像、权限信息
+
+    }
 }
