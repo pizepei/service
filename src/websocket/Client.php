@@ -15,12 +15,13 @@ class Client
      * 绑定的服务地址（可以是域名）
      * @var string
      */
-    const host = 'oauth.heil.top';
+    private $host = 'oauth.heil.top';
     /**
      * 服务端口号
      * @var int
      */
-    const port = 9501;
+    private $port = 9501;
+
     /**
      * 服务的实例化
      * @var null
@@ -102,6 +103,9 @@ class Client
      */
     function __construct($Payload=[],$JWT_config=[])
     {
+        if (!class_exists('\swoole_client')){
+            throw new \Exception('swoole_client  not exist');
+        }
         /**
          * 处理配置
          */
@@ -137,7 +141,7 @@ class Client
      */
     public function connect()
     {
-        $this->connect = new WebSocketClient(self::host, self::port,$this->JWT_param);
+        $this->connect = new WebSocketClient($this->host, $this->port,$this->JWT_param);
         $this->connectContent = $this->connect->connect();
         return $this->connect;
     }
