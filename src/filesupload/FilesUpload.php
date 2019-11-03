@@ -56,11 +56,11 @@ class FilesUpload
                 }
             }
             if(!$i){
-                return $Controller->error($referer,'不允许的来源域名：'.$referer);
+                return $Controller->error('不允许的来源域名：'.$referer);
             }
         }
         if(!in_array($Request['show_domain'],$this->config['show_domain'])){
-            return $Controller->error($referer,'不允许的显示源域名：'.$referer);
+            return $Controller->error('不允许的显示源域名：'.$referer);
         }
 
         $timestamp = time();
@@ -99,24 +99,24 @@ class FilesUpload
     public function verifySignature(array $Request,\pizepei\staging\Controller $Controller)
     {
         if(empty($_FILES)){
-            return $Controller->error($Request,'FILES不能为[]');
+            return $Controller->error('FILES不能为[]');
         }
 
         if($this->configCsema === [])
         {
-            return $Controller->error($Request,'configCsema配置不能为[]');
+            return $Controller->error('configCsema配置不能为[]');
         }
         $SHA1 = new SHA1();
         $msgSignature = $SHA1->getSHA1($this->config['token'],$Request['timestamp'],$Request['nonce'],$Request['encrypt_msg']);
         if($Request['msgSignature'] !=$msgSignature){
-            return $Controller->error($Request,'签名错误：'.$referer);
+            return $Controller->error('签名错误：'.$referer);
         }
 
         /**
          * 判断签名有效期
          */
         if( ((time()-$Request['timestamp'])/60) >  $this->config['period']){
-            return $Controller->error($Request,'签名过期');
+            return $Controller->error('签名过期');
         }
         /**
          * 解密
@@ -128,19 +128,19 @@ class FilesUpload
          * 判断解密是否与实际请求对应
          */
         if($encrypt_msg[2] != $this->config['appid']){
-            return $Controller->error($Request,'解密信息错误');
+            return $Controller->error('解密信息错误');
         }
 
         $array = json_decode($encrypt_msg[1],true);
         if(empty($array)){
-            return $Controller->error($Request,'解密信息错误');
+            return $Controller->error('解密信息错误');
         }
 
         $referer = $_SERVER['HTTP_REFERER']??'*';
 
         if($referer != $array['request_domain'])
         {
-            return $Controller->error($Request,'request_domain错误');
+            return $Controller->error('request_domain错误');
         }
         var_dump($array);
 
@@ -175,13 +175,13 @@ class FilesUpload
                  * 判断文件大小
                  */
                 if($value['size'] > $this->configCsema['size']){
-                    return $this->error(['name'=>$key,'data'=>$value],'文件大小超过：'.($this->configCsema['size']/1024).'kb');
+                    return $this->error('文件大小超过：'.($this->configCsema['size']/1024).'kb');
                 }
                 /**
                  * 判断文件类型
                  */
                 if(!in_array($value['type'],$this->configCsema['type'])){
-                    return $this->error(['name'=>$key,'data'=>$value],'不允许的文件类型：'.$value['type']);
+                    return $this->error('不允许的文件类型：'.$value['type']);
                 }
                 $temporary = $value['tmp_name'];
                 $expandedName = explode("/",$value['type']);
@@ -208,7 +208,7 @@ class FilesUpload
                 }
             }
             if(!$i){
-                return $Controller->error($referer,'不允许的来源域名：'.$referer);
+                return $Controller->error('不允许的来源域名：'.$referer);
             }
         }
         /**
