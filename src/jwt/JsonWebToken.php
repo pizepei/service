@@ -148,28 +148,19 @@ class JsonWebToken
      */
     public function decodeJWT(string $jwtString,array $config,\Redis $Redis=null,$TokenSaltName='number')
     {
-        /**
-         * 切割主体
-         */
+        # 切割主体
         $explode = explode('.',$jwtString);
         if(count($explode)  !== 3){throw new \Exception('Payload加密错误',\ErrorOrLog::NOT_LOGGOD_IN_CODE);}
-        /**
-         * 验证签名
-         */
-
+        # 验证签名
         $Header = json_decode(base64_decode($explode[0]),true);
         if((!isset($Header['sig'])) || (!isset($Header['sig']))){throw new \Exception('非法数据[Header]',\ErrorOrLog::NOT_LOGGOD_IN_CODE);}
         $str = $explode[0].'.'.$explode[1];
-        /**
-         * 判断是否有用户自己的TokenSalt
-         */
+        # 判断是否有用户自己的TokenSalt
         $TokenSalt = '';
         if($Redis){
             $TokenSalt = $Redis->get('user-logon-jwt-tokenSalt:'.$Header['number']);
         }
-        /**
-         * 判断签名方法
-         */
+        # 判断签名方法
         if($Header['sig'] == 'md5')
         {
             $signature = md5($str.'.'.$config['secret'].$TokenSalt);
@@ -190,22 +181,22 @@ class JsonWebToken
             $Prpcrypt = new Prpcrypt($config['secret_key']);
             $Payload = $Prpcrypt->decrypt(base64_decode($explode[1]));
             if(!isset($Payload[2])){throw new \Exception('非法数据',\ErrorOrLog::NOT_LOGGOD_IN_CODE);}
-            /**
-             * 判断appid是否正确
-             */
+            # 判断appid是否正确
             if($Payload[2]  !== $Header['appid']){throw new \Exception('非法数据',\ErrorOrLog::NOT_LOGGOD_IN_CODE);}
             $Payload = json_decode($Payload[1],true);
             if(empty($Payload)){throw new \Exception('非法数据',\ErrorOrLog::NOT_LOGGOD_IN_CODE);}
         }
-        /**
-         * 判断是否过期
-         */
-        if(!isset($Payload['nbf'])  ||  !isset($Payload['iat'])  || !isset($Payload['exp'])){throw new \Exception('非法数据',\ErrorOrLog::NOT_LOGGOD_IN_CODE);}
+        # 判断是否过期
+        if(!isset($Payload['nbf'])  ||  !isset($Payload['iat'])  || !isset($Payload['exp'])){error('非法操作[数据错误]',\ErrorOrLog::NOT_LOGGOD_IN_CODE);}
         $Payload['nbf'] = $Payload['nbf']??time();//生效时间
         $Payload['iat'] = $Payload['iat']??time();//签发时间
-        if(time() < $Payload['nbf']){throw new \Exception('签名未生效',\ErrorOrLog::NOT_LOGGOD_IN_CODE);}
+        if(time() < $Payload['nbf']){
+            error('登录未生效',\ErrorOrLog::NOT_LOGGOD_IN_CODE);
+        }
         
-        if(time() > ($Payload['exp']+$Payload['nbf']) ){throw new \Exception('签名失效',\ErrorOrLog::NOT_LOGGOD_IN_CODE);}
+        if(time() > ($Payload['exp']+$Payload['nbf']) ){
+            error('登录过期',\ErrorOrLog::NOT_LOGGOD_IN_CODE);
+        }
 
         return $Payload;
     }
