@@ -190,16 +190,28 @@ class JsonWebToken
         if(!isset($Payload['nbf'])  ||  !isset($Payload['iat'])  || !isset($Payload['exp'])){error('非法操作[数据错误]',\ErrorOrLog::NOT_LOGGOD_IN_CODE);}
         $Payload['nbf'] = $Payload['nbf']??time();//生效时间
         $Payload['iat'] = $Payload['iat']??time();//签发时间
+        static::is_time($Payload);
+        return $Payload;
+    }
+
+    /**
+     * @Author 皮泽培
+     * @Created 2019/11/4 15:21
+     * @param $Payload
+     * @title  验证是否在有效期内
+     * @throws \Exception
+     */
+    public static function is_time($Payload)
+    {
         if(time() < $Payload['nbf']){
             error('登录未生效',\ErrorOrLog::NOT_LOGGOD_IN_CODE);
         }
-        
         if(time() > ($Payload['exp']+$Payload['nbf']) ){
             error('登录过期',\ErrorOrLog::NOT_LOGGOD_IN_CODE);
         }
 
-        return $Payload;
     }
+
 
     /**
      * @Author 皮泽培
