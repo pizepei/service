@@ -15,12 +15,12 @@ class Client
      * 绑定的服务地址（可以是域名）
      * @var string
      */
-    private $host = 'oauth.heil.top';
+    public $host = 'oauth.heil.top';
     /**
      * 服务端口号
      * @var int
      */
-    private $port = 9501;
+    public $port = 9501;
 
     /**
      * 服务的实例化
@@ -196,7 +196,7 @@ class Client
         $exist = json_decode($exist->data,true);
 
         if(isset($exist['success'])){
-            if ($exist['data']['status']){
+            if ($exist['data']['status']??false){
                 return $exist['data']['clientInfo'];
             }
             return false;

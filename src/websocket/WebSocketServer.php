@@ -93,19 +93,27 @@ class WebSocketServer
     const config = [
         //'heartbeat_check_interval'=>15,//每5s发送一次心跳检测
         //'heartbeat_idle_time'      =>30,//10s没有回复断开
+//        'ssl_cert_file' => $key_dir.'/ssl.crt',
+//        'ssl_key_file' => $key_dir.'/ssl.key',
     ];
     /**
      * WebSocketServer constructor.
      */
-    function __construct()
+    function __construct($config=[],$host='0.0.0.0',$port='9501')
     {
+        # 合并配置
+        $config = array_merge(self::config,$config);
         /**
          * 实例化WebSocketServer
          */
-//        $this->Server = new \Swoole\WebSocket\Server(self::host, self::port);
+        if (isset($config['ssl_cert_file']) && isset($config['ssl_key_file']))
+        {
+            $this->Server = new \swoole_websocket_server($host, $port,SWOOLE_PROCESS, SWOOLE_SOCK_TCP | SWOOLE_SSL);
+        }else{
+            $this->Server = new \swoole_websocket_server($host, $port);
+        }
+        $this->Server->set($config);
 
-        $this->Server = new \swoole_websocket_server(self::host, self::port);
-        $this->Server->set(self::config);
         /**
          * 创建数据表
          */
@@ -478,5 +486,3 @@ class WebSocketServer
         //exist
     }
 }
-
-new WebSocketServer();
