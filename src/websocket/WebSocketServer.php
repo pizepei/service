@@ -287,7 +287,7 @@ class WebSocketServer
         /**
          * 返回数据
          */
-        var_dump($serv->send);
+//        var_dump($serv->send);
         $Server->push($request->fd,$data);
     }
     /**

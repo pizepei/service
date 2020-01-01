@@ -139,10 +139,11 @@ class Client
      * 开始连接
      * @return null|\WebSocketClient
      */
-    public function connect()
+    public function connect($ssl=false)
     {
         $this->connect = new WebSocketClient($this->host, $this->port,$this->JWT_param);
-        $this->connectContent = $this->connect->connect();
+        $this->connectContent = $this->connect->connect($ssl);
+        $this->connect->recv(30,100);   #可能出现多的连接返回数据
         return $this->connect;
     }
     /**
@@ -194,7 +195,6 @@ class Client
         //"{"success":2000,"msg":"ok","uid":1541057697,"fd":6,"serverTime":1541057697,"data":{"status":true,"type":"uid","id":1541042444}}
         $exist = $this->connect->recv(30,100);
         $exist = json_decode($exist->data,true);
-
         if(isset($exist['success'])){
             if ($exist['data']['status']??false){
                 return $exist['data']['clientInfo'];
